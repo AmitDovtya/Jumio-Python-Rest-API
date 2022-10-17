@@ -122,13 +122,11 @@ def get_status(scan_ref):
 # V2 API: Keeps checking until the transaction is processed.
 def check_status(scan_ref):
     time.sleep(5)
-    # get the transaction status.
-    t_status = get_status(scan_ref)
 
     # keep checking the status while transaction is not finished.
     while True:
-        print(t_status)
         st = get_status(scan_ref)
+        print(st)
 
         # Exit once the transaction is finished.
         if st != 'PENDING':
@@ -140,12 +138,10 @@ def check_status(scan_ref):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    # res = create_transaction()
-    # s_ref = res['jumioIdScanReference']
-    # print(s_ref)
-    # print(check_status(s_ref))
+    res = create_transaction()
+    print(res['jumioIdScanReference'])
+    print(check_status(res['jumioIdScanReference']))
 
     kyx_tr = create_kyx_account().json()
-
     status = kyx_api(kyx_tr)
     print(status)
