@@ -40,7 +40,7 @@ def create_kyx_account():
     body = {
         "customerInternalReference": "CUSTOMER_REFERENCE",
         "workflowDefinition": {
-            "key": 10013,
+            "key": 10015,
         },
         "userReference": "YOUR_USER_REFERENCE"
     }
@@ -49,21 +49,51 @@ def create_kyx_account():
     return response
 
 
+# REST API request of standalone ID (10015)
+def kyx_api(kyx_trx):
+    # extract the API URLs from the transaction.
+    front_url = kyx_trx['workflowExecution']['credentials'][0]['api']['parts']['front']
+    back_url = kyx_trx['workflowExecution']['credentials'][0]['api']['parts']['back']
+    finalize_url = kyx_trx['workflowExecution']['credentials'][0]['api']['workflowExecution']
+
+    my_headers = {
+        'User-Agent': 'amit_test',
+        'Authorization': f'Bearer {get_access_token()}'
+    }
+
+    # Upload front image.
+    front_upload = [
+        ('file', ('DL_front.jpeg', open('Oliver DL Back (1).jpeg', 'rb'), 'image/jpeg'))
+    ]
+    requests.post(url=front_url, files=front_upload, headers=my_headers)
+
+    # Upload back image.
+    back_upload = [
+        ('file', ('DL_front.jpeg', open('Oliver DL Back (1).jpeg', 'rb'), 'image/jpeg'))
+    ]
+    requests.post(url=back_url, files=back_upload, headers=my_headers)
+
+    # finalize the request and return the status of the transaction.
+    return requests.put(url=finalize_url, headers=my_headers).status_code
+
+
 # performNV
 def create_transaction(front_side="Oliver DL Back (1).jpeg", back_side="Oliver DL Front (1).png"):
     # api-endpoint
     url = "https://netverify.com/api/netverify/v2/performNetverify"
 
     # header parameters
-    my_headers = {'Accept': 'application/json', 'User-Agent': 'amit_test', 'Content-Type': 'application/json'}
+    my_headers = {
+                    'Accept': 'application/json',
+                    'User-Agent': 'amit_test',
+                    'Content-Type': 'application/json'
+                }
 
     # encode ID images
     with open(front_side, "rb") as image_front:
-        front_b64 = base64.b64encode(image_front.read())
-        front_encoded = front_b64.decode()
+        front_encoded = base64.b64encode(image_front.read()).decode()
     with open(back_side, "rb") as image_back:
-        back_b64 = base64.b64encode(image_back.read())
-        back_encoded = back_b64.decode()
+        back_encoded = base64.b64encode(image_back.read()).decode()
 
     # json body
     body = {
@@ -76,11 +106,8 @@ def create_transaction(front_side="Oliver DL Back (1).jpeg", back_side="Oliver D
                 "backsideImage": back_encoded
             }
 
-    # sending post request and saving response as response object
-    response = requests.post(url=url, data=json.dumps(body), headers=my_headers, auth=HTTPBasicAuth(token, secret))
-
-    # extracting response text
-    return response
+    # sending post request and returning response as JSON object.
+    return requests.post(url=url, data=json.dumps(body), headers=my_headers, auth=HTTPBasicAuth(token, secret)).json()
 
 
 # V2 Retrieval API: Gets the current status of a transaction.
@@ -88,16 +115,8 @@ def get_status(scan_ref):
     # api-endpoint
     url = "https://netverify.com/api/netverify/v2/scans/" + scan_ref
 
-    # Request for checking status of a V2 transaction.
-    r = requests.get(url=url, auth=HTTPBasicAuth(token, secret))
-
-    # extracting data in json format.
-    data = r.json()
-
-    # extract status from the response.
-    status = data['status']
-
-    return status
+    # Request for checking status of a V2 transaction. Extract status from the response and return it.
+    return requests.get(url=url, auth=HTTPBasicAuth(token, secret)).json()['status']
 
 
 # V2 API: Keeps checking until the transaction is processed.
@@ -121,8 +140,12 @@ def check_status(scan_ref):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    # res = create_transaction().json()
+    # res = create_transaction()
     # s_ref = res['jumioIdScanReference']
     # print(s_ref)
     # print(check_status(s_ref))
-    print(create_kyx_account().json())
+
+    kyx_tr = create_kyx_account().json()
+
+    status = kyx_api(kyx_tr)
+    print(status)
