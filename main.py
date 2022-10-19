@@ -76,9 +76,7 @@ def kyx_api(kyx_trx_response):
     return requests.put(url=finalize_url, headers=my_headers).json()
 
 
-# V3 API: Authentication - Facemap on premise
-def authentication_on_premise(account_id="2797b914-d9e9-4c1c-ae5d-d84f062d8920",
-                              workflow_id="0909c43c-949c-4a5e-8b1c-090e673d400f"):
+def retrieve_facemap(account_id, workflow_id):
     # Transaction retrieval URL and headers
     retrieval_url = f"https://retrieval.amer-1.jumio.ai/api/v1/accounts/{account_id}/workflow-executions/{workflow_id}"
     retrieval_headers = {
@@ -91,6 +89,12 @@ def authentication_on_premise(account_id="2797b914-d9e9-4c1c-ae5d-d84f062d8920",
     facemap_download = requests.get(url=facemap_url, headers=retrieval_headers)
     with open('facemap.bin', 'wb') as facemap:
         facemap.write(facemap_download.content)
+
+
+# V3 API: Authentication - Facemap on premise
+def authentication_on_premise(account_id="2797b914-d9e9-4c1c-ae5d-d84f062d8920",
+                              workflow_id="0909c43c-949c-4a5e-8b1c-090e673d400f"):
+    retrieve_facemap(account_id, workflow_id)  # Create/ overwrite facemap.bin file with required facemap binary stream.
 
     # api-endpoint
     url = f"https://account.amer-1.jumio.ai/api/v1/accounts/{account_id}"
@@ -125,9 +129,10 @@ def authentication_on_premise(account_id="2797b914-d9e9-4c1c-ae5d-d84f062d8920",
     return requests.post(url=facemap_link, files=file, headers=facemap_headers).status_code, web_link
 
 
-# Check status of V3 and KYX transactions.
+# Get status of a V3 or KYX transaction.
 def get_status_v3_kyx(account_id, workflow_id):
-    retrieval_url = f"https://retrieval.amer-1.jumio.ai/api/v1/accounts/{account_id}/workflow-executions/{workflow_id}/status"
+    retrieval_url = f"https://retrieval.amer-1.jumio.ai/api/v1/accounts/{account_id}" \
+                    f"/workflow-executions/{workflow_id}/status"
     retrieval_headers = {
         'User-Agent': 'amit_test',
         'Authorization': f'Bearer {get_access_token()}'}
@@ -135,6 +140,7 @@ def get_status_v3_kyx(account_id, workflow_id):
     return retrieval_response.json()['workflowExecution']['status']
 
 
+# Check status until a V3 or KYX transaction is finished.
 def check_status_v3_kyx(account_id, workflow_id):
     while True:
         kyx_status = get_status_v3_kyx(account_id, workflow_id)
