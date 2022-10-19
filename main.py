@@ -135,9 +135,7 @@ def check_status(scan_ref):
             time.sleep(5)
             continue
 
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
+def main():
     res = create_transaction()
     print(res['jumioIdScanReference'])
     print(check_status(res['jumioIdScanReference']))
@@ -145,3 +143,8 @@ if __name__ == '__main__':
     kyx_tr = create_kyx_account().json()
     status = kyx_api(kyx_tr)
     print(status)
+
+
+# Press the green button in the gutter to run the script.
+if __name__ == '__main__':
+    main()
