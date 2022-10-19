@@ -126,12 +126,12 @@ def check_status(scan_ref):
     # keep checking the status while transaction is not finished.
     while True:
         st = get_status(scan_ref)
-        print(st)
 
         # Exit once the transaction is finished.
         if st != 'PENDING':
             return st
         else:
+            print(st)
             time.sleep(5)
             continue
 
