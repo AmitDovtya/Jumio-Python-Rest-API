@@ -45,8 +45,7 @@ def create_kyx_account():
         "userReference": "YOUR_USER_REFERENCE"
     }
 
-    response = requests.post(url=url, data=json.dumps(body), headers=my_headers)
-    return response
+    return requests.post(url=url, data=json.dumps(body), headers=my_headers).json()
 
 
 # REST API request of standalone ID (10015)
@@ -74,7 +73,7 @@ def kyx_api(kyx_trx):
     requests.post(url=back_url, files=back_upload, headers=my_headers)
 
     # finalize the request and return the status of the transaction.
-    return requests.put(url=finalize_url, headers=my_headers).status_code
+    return requests.put(url=finalize_url, headers=my_headers).json()
 
 
 # V3 API: Authentication - Facemap on premise
@@ -126,6 +125,29 @@ def authentication_on_premise(account_id="2797b914-d9e9-4c1c-ae5d-d84f062d8920",
     return requests.post(url=facemap_link, files=file, headers=facemap_headers).status_code, web_link
 
 
+# Check status of V3 and KYX transactions.
+def get_status_v3_kyx(account_id, workflow_id):
+    retrieval_url = f"https://retrieval.amer-1.jumio.ai/api/v1/accounts/{account_id}/workflow-executions/{workflow_id}/status"
+    retrieval_headers = {
+        'User-Agent': 'amit_test',
+        'Authorization': f'Bearer {get_access_token()}'}
+    retrieval_response = requests.get(url=retrieval_url, headers=retrieval_headers)
+    return retrieval_response.json()['workflowExecution']['status']
+
+
+def check_status_v3_kyx(account_id, workflow_id):
+    while True:
+        kyx_status = get_status_v3_kyx(account_id, workflow_id)
+
+        # Exit once the transaction is finished.
+        if kyx_status != 'INITIATED':
+            return kyx_status
+        else:
+            print(kyx_status)
+            time.sleep(5)
+            continue
+
+
 # performNV
 def create_transaction(front_side="Oliver DL Back (1).jpeg", back_side="Oliver DL Front (1).png"):
     # api-endpoint
@@ -162,7 +184,7 @@ def create_transaction(front_side="Oliver DL Back (1).jpeg", back_side="Oliver D
 # V2 Retrieval API: Gets the current status of a transaction.
 def get_status(scan_ref):
     # api-endpoint
-    url = "https://netverify.com/api/netverify/v2/scans/" + scan_ref
+    url = f"https://netverify.com/api/netverify/v2/scans/{scan_ref}"
 
     # Request for checking status of a V2 transaction. Extract status from the response and return it.
     return requests.get(url=url, auth=HTTPBasicAuth(token, secret)).json()['status']
@@ -192,9 +214,12 @@ def main():
     print(check_status(res['jumioIdScanReference']))
 
     # call to KYX: Standalone ID Rest API
-    kyx_tr = create_kyx_account().json()
-    status = kyx_api(kyx_tr)
-    print(status)
+    kyx_tr = create_kyx_account()
+    response = kyx_api(kyx_tr)
+    acc_id = response['account']['id']
+    wf_id = response['workflowExecution']['id']
+    kyx_tr_status = check_status_v3_kyx(acc_id, wf_id)
+    print(kyx_tr_status)
 
     # call to V3 API: Authentication with facemap on premise. Need to use the link to complete the transaction.
     print(
