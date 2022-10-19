@@ -77,6 +77,55 @@ def kyx_api(kyx_trx):
     return requests.put(url=finalize_url, headers=my_headers).status_code
 
 
+# V3 API: Authentication - Facemap on premise
+def authentication_on_premise(account_id="2797b914-d9e9-4c1c-ae5d-d84f062d8920",
+                              workflow_id="0909c43c-949c-4a5e-8b1c-090e673d400f"):
+    # Transaction retrieval URL and headers
+    retrieval_url = f"https://retrieval.amer-1.jumio.ai/api/v1/accounts/{account_id}/workflow-executions/{workflow_id}"
+    retrieval_headers = {
+        'User-Agent': 'amit_test',
+        'Authorization': f'Bearer {get_access_token()}'}
+
+    # download facemap and write to a filename facemap.bin
+    facemap_response = requests.get(url=retrieval_url, headers=retrieval_headers).json()
+    facemap_url = facemap_response['capabilities']['liveness'][0]['validFaceMapForAuthentication']
+    facemap_download = requests.get(url=facemap_url, headers=retrieval_headers)
+    with open('facemap.bin', 'wb') as facemap:
+        facemap.write(facemap_download.content)
+
+    # api-endpoint
+    url = f"https://account.amer-1.jumio.ai/api/v1/accounts/{account_id}"
+
+    my_headers = {
+        'User-Agent': 'amit_test',
+        'Authorization': f'Bearer {get_access_token()}',
+        'Content-type': 'application/json'
+    }
+
+    facemap_headers = {
+        'User-Agent': 'amit_test',
+        'Authorization': f'Bearer {get_access_token()}'
+    }
+
+    body = {
+        "customerInternalReference": "CUSTOMER_REFERENCE",
+        "workflowDefinition": {
+            "key": 16,
+        },
+        "userReference": "YOUR_USER_REFERENCE"
+    }
+
+    response = requests.put(url=url, headers=my_headers, data=json.dumps(body)).json()
+    web_link = response['web']['href']
+    facemap_link = response['workflowExecution']['credentials'][1]['api']['parts']['facemap']
+    file = [
+        ('file', ('facemap.bin', open('facemap.bin', 'rb'), 'application/octet-stream'))
+    ]
+
+    # return request status and the web URL to capture face.
+    return requests.post(url=facemap_link, files=file, headers=facemap_headers).status_code, web_link
+
+
 # performNV
 def create_transaction(front_side="Oliver DL Back (1).jpeg", back_side="Oliver DL Front (1).png"):
     # api-endpoint
@@ -135,16 +184,21 @@ def check_status(scan_ref):
             time.sleep(5)
             continue
 
+
 def main():
+    # call to V2: performNV API
     res = create_transaction()
     print(res['jumioIdScanReference'])
     print(check_status(res['jumioIdScanReference']))
 
+    # call to KYX: Standalone ID Rest API
     kyx_tr = create_kyx_account().json()
     status = kyx_api(kyx_tr)
     print(status)
 
+    # call to V3 API: Authentication with facemap on premise
+    print(authentication_on_premise())
 
-# Press the green button in the gutter to run the script.
+
 if __name__ == '__main__':
     main()
