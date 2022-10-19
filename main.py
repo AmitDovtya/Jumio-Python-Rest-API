@@ -49,11 +49,11 @@ def create_kyx_account():
 
 
 # REST API request of standalone ID (10015)
-def kyx_api(kyx_trx):
+def kyx_api(kyx_trx_response):
     # extract the API URLs from the transaction.
-    front_url = kyx_trx['workflowExecution']['credentials'][0]['api']['parts']['front']
-    back_url = kyx_trx['workflowExecution']['credentials'][0]['api']['parts']['back']
-    finalize_url = kyx_trx['workflowExecution']['credentials'][0]['api']['workflowExecution']
+    front_url = kyx_trx_response['workflowExecution']['credentials'][0]['api']['parts']['front']
+    back_url = kyx_trx_response['workflowExecution']['credentials'][0]['api']['parts']['back']
+    finalize_url = kyx_trx_response['workflowExecution']['credentials'][0]['api']['workflowExecution']
 
     my_headers = {
         'User-Agent': 'amit_test',
@@ -72,7 +72,7 @@ def kyx_api(kyx_trx):
     ]
     requests.post(url=back_url, files=back_upload, headers=my_headers)
 
-    # finalize the request and return the status of the transaction.
+    # finalize the request and return the response as a dictionary.
     return requests.put(url=finalize_url, headers=my_headers).json()
 
 
@@ -214,7 +214,7 @@ def main():
     print(check_status(res['jumioIdScanReference']))
 
     # call to KYX: Standalone ID Rest API
-    kyx_tr = create_kyx_account()
+    kyx_tr = create_kyx_account()  # receives a dictionary with the response parameters of KYX transaction creation.
     response = kyx_api(kyx_tr)
     acc_id = response['account']['id']
     wf_id = response['workflowExecution']['id']
