@@ -196,8 +196,11 @@ def main():
     status = kyx_api(kyx_tr)
     print(status)
 
-    # call to V3 API: Authentication with facemap on premise
-    print(authentication_on_premise())
+    # call to V3 API: Authentication with facemap on premise. Need to use the link to complete the transaction.
+    print(
+        authentication_on_premise(account_id="2797b914-d9e9-4c1c-ae5d-d84f062d8920",
+                                  workflow_id="0909c43c-949c-4a5e-8b1c-090e673d400f")
+    )
 
 
 if __name__ == '__main__':
