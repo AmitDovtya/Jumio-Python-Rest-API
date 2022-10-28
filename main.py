@@ -18,6 +18,7 @@ client_secret = CLIENT_SECRET  # input your API client secret here as a string.
 
 # KYX OAUTH 2.0 token
 def get_access_token():
+    """Returns an OAuth 2.0 token to authenticate KYX or V3 API requests."""
     auth_server_url = "https://auth.amer-1.jumio.ai/oauth2/token"
     token_req_payload = {'grant_type': 'client_credentials'}
     token_response = requests.post(auth_server_url,
@@ -27,7 +28,9 @@ def get_access_token():
 
 
 # Creates a new account and a KYX transaction
-def create_kyx_account():
+def create_kyx_account(key=10015):
+    """Creates a new KYX account ID and returns the response in JSON format,
+     which includes Account ID and Transaction reference."""
     # api-endpoint
     url = "https://account.amer-1.jumio.ai/api/v1/accounts"
 
@@ -40,7 +43,7 @@ def create_kyx_account():
     body = {
         "customerInternalReference": "CUSTOMER_REFERENCE",
         "workflowDefinition": {
-            "key": 10015,
+            "key": key,
         },
         "userReference": "YOUR_USER_REFERENCE"
     }
@@ -50,6 +53,8 @@ def create_kyx_account():
 
 # REST API request of standalone ID (10015)
 def kyx_api(kyx_trx_response):
+    """Receives a KYX response in JSON format and completes the request through API platform
+     and returns the response."""
     # extract the API URLs from the transaction.
     front_url = kyx_trx_response['workflowExecution']['credentials'][0]['api']['parts']['front']
     back_url = kyx_trx_response['workflowExecution']['credentials'][0]['api']['parts']['back']
@@ -77,6 +82,8 @@ def kyx_api(kyx_trx_response):
 
 
 def retrieve_facemap(account_id, workflow_id):
+    """Retrieves facemap from an existing account using account and workflow IDs.
+     It will create a 'facemap.bin' file in the current folder with the facemap."""
     # Transaction retrieval URL and headers
     retrieval_url = f"https://retrieval.amer-1.jumio.ai/api/v1/accounts/{account_id}/workflow-executions/{workflow_id}"
     retrieval_headers = {
@@ -94,6 +101,8 @@ def retrieve_facemap(account_id, workflow_id):
 # V3 API: Authentication - Facemap on premise
 def authentication_on_premise(account_id="2797b914-d9e9-4c1c-ae5d-d84f062d8920",
                               workflow_id="0909c43c-949c-4a5e-8b1c-090e673d400f"):
+    """For an existing account with liveness, it will use existing facemap
+    and will generate a web URL to complete the Authentication."""
     retrieve_facemap(account_id, workflow_id)  # Create/ overwrite facemap.bin file with required facemap binary stream.
 
     # api-endpoint
@@ -220,7 +229,7 @@ def main():
     print(check_status(res['jumioIdScanReference']))
 
     # call to KYX: Standalone ID Rest API
-    kyx_tr = create_kyx_account()  # receives a dictionary with the response parameters of KYX transaction creation.
+    kyx_tr = create_kyx_account(key=10015)  # dictionary with the response parameters of KYX transaction creation.
     response = kyx_api(kyx_tr)
     acc_id = response['account']['id']
     wf_id = response['workflowExecution']['id']
