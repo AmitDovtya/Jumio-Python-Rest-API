@@ -3,7 +3,7 @@ import time
 import base64
 import json
 
-from api_creds import TOKEN, SECRET, CLIENT_ID, CLIENT_SECRET
+from api_creds import TOKEN, SECRET, CLIENT_ID, CLIENT_SECRET   # remove this line.
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -140,6 +140,7 @@ def authentication_on_premise(account_id="2797b914-d9e9-4c1c-ae5d-d84f062d8920",
 
 # Get status of a V3 or KYX transaction.
 def get_status_v3_kyx(account_id, workflow_id):
+    """It will return the status for the provided account and workflow ID."""
     retrieval_url = f"https://retrieval.amer-1.jumio.ai/api/v1/accounts/{account_id}" \
                     f"/workflow-executions/{workflow_id}/status"
     retrieval_headers = {
@@ -151,6 +152,8 @@ def get_status_v3_kyx(account_id, workflow_id):
 
 # Check status until a V3 or KYX transaction is finished.
 def check_status_v3_kyx(account_id, workflow_id):
+    """It will keep checking the status until the transaction is finished.
+    return the final status for the provided account and workflow ID."""
     while True:
         kyx_status = get_status_v3_kyx(account_id, workflow_id)
 
@@ -165,6 +168,8 @@ def check_status_v3_kyx(account_id, workflow_id):
 
 # performNV
 def create_transaction(front_side="Oliver DL Back (1).jpeg", back_side="Oliver DL Front (1).png"):
+    """It will do a performNV (ID only) transaction for the provided ID images (jpeg or png).
+    It will return the response for the completed request in JSON format."""
     # api-endpoint
     url = "https://netverify.com/api/netverify/v2/performNetverify"
 
@@ -198,6 +203,7 @@ def create_transaction(front_side="Oliver DL Back (1).jpeg", back_side="Oliver D
 
 # V2 Retrieval API: Gets the current status of a transaction.
 def get_status(scan_ref):
+    """It will return the status for the provided scan reference."""
     # api-endpoint
     url = f"https://netverify.com/api/netverify/v2/scans/{scan_ref}"
 
@@ -207,6 +213,8 @@ def get_status(scan_ref):
 
 # V2 API: Keeps checking until the transaction is processed.
 def check_status(scan_ref):
+    """It will keep checking the status until the transaction is finished.
+        Returns the final status for the provided scan reference."""
     time.sleep(5)
 
     # keep checking the status while transaction is not finished.
