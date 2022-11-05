@@ -4,6 +4,11 @@
 
 This script is implenentated in Python. It includes several function to create and check transaction status.
 
+## Requirements
+
++ Python 3.10
++ Requests library 2.28.1
+
 ## Functions
 
 Below are the fuctions related to the different API platforms:
