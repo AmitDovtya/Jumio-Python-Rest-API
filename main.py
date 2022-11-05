@@ -7,6 +7,8 @@ from api_creds import TOKEN, SECRET, CLIENT_ID, CLIENT_SECRET   # remove this li
 
 import requests
 from requests.auth import HTTPBasicAuth
+from oauthlib.oauth2 import BackendApplicationClient
+from requests_oauthlib import OAuth2Session
 
 
 # API credentials.
@@ -17,7 +19,7 @@ client_secret = CLIENT_SECRET  # input your API client secret here as a string.
 
 
 # KYX OAUTH 2.0 token
-def get_access_token():
+def get_access_token() -> str:
     """Returns an OAuth 2.0 token to authenticate KYX or V3 API requests."""
     auth_server_url = "https://auth.amer-1.jumio.ai/oauth2/token"
     token_req_payload = {'grant_type': 'client_credentials'}
@@ -27,8 +29,20 @@ def get_access_token():
     return token_response.json()['access_token']
 
 
+def get_access_token_2() -> str:
+    """Returns an OAuth 2.0 token to authenticate KYX or V3 API requests.
+    Alternative for get_access_token() using:
+    from oauthlib.oauth2 import BackendApplicationClient
+    from requests_oauthlib import OAuth2Session"""
+    auth = HTTPBasicAuth(client_id, client_secret)
+    client = BackendApplicationClient(client_id=client_id)
+    oauth = OAuth2Session(client=client)
+    access_token = oauth.fetch_token(token_url='https://auth.amer-1.jumio.ai/oauth2/token', auth=auth)
+    return access_token['access_token']
+
+
 # Creates a new account and a KYX transaction
-def create_kyx_account(key=10015):
+def create_kyx_account(key=10015) -> dict:
     """Creates a new KYX account ID and returns the response in JSON format,
      which includes Account ID and Transaction reference."""
     # api-endpoint
@@ -37,7 +51,7 @@ def create_kyx_account(key=10015):
     my_headers = {
                 'Content-Type': 'application/json',
                 'User-Agent': 'amit_test',
-                'Authorization': f'Bearer {get_access_token()}'
+                'Authorization': f'Bearer {get_access_token_2()}'
             }
 
     body = {
@@ -52,10 +66,11 @@ def create_kyx_account(key=10015):
 
 
 # REST API request of standalone ID (10015)
-def kyx_api(kyx_trx_response):
-    """Receives a KYX response in JSON format and completes the request through API platform
+def kyx_api(kyx_trx_response: dict):
+    """Receives a KYX account creation/ update response and completes the request through API platform
      and returns the response."""
     # extract the API URLs from the transaction.
+    print(kyx_trx_response)
     front_url = kyx_trx_response['workflowExecution']['credentials'][0]['api']['parts']['front']
     back_url = kyx_trx_response['workflowExecution']['credentials'][0]['api']['parts']['back']
     finalize_url = kyx_trx_response['workflowExecution']['credentials'][0]['api']['workflowExecution']
@@ -81,7 +96,7 @@ def kyx_api(kyx_trx_response):
     return requests.put(url=finalize_url, headers=my_headers).json()
 
 
-def retrieve_facemap(account_id, workflow_id):
+def retrieve_facemap(account_id: str, workflow_id: str):
     """Retrieves facemap from an existing account using account and workflow IDs.
      It will create a 'facemap.bin' file in the current folder with the facemap."""
     # Transaction retrieval URL and headers
@@ -100,7 +115,7 @@ def retrieve_facemap(account_id, workflow_id):
 
 # V3 API: Authentication - Facemap on premise
 def authentication_on_premise(account_id="2797b914-d9e9-4c1c-ae5d-d84f062d8920",
-                              workflow_id="0909c43c-949c-4a5e-8b1c-090e673d400f"):
+                              workflow_id="0909c43c-949c-4a5e-8b1c-090e673d400f") -> tuple:
     """For an existing account with liveness, it will use existing facemap
     and will generate a web URL to complete the Authentication."""
     retrieve_facemap(account_id, workflow_id)  # Create/ overwrite facemap.bin file with required facemap binary stream.
@@ -139,7 +154,7 @@ def authentication_on_premise(account_id="2797b914-d9e9-4c1c-ae5d-d84f062d8920",
 
 
 # Get status of a V3 or KYX transaction.
-def get_status_v3_kyx(account_id, workflow_id):
+def get_status_v3_kyx(account_id, workflow_id) -> str:
     """It will return the status for the provided account and workflow ID."""
     retrieval_url = f"https://retrieval.amer-1.jumio.ai/api/v1/accounts/{account_id}" \
                     f"/workflow-executions/{workflow_id}/status"
@@ -151,7 +166,7 @@ def get_status_v3_kyx(account_id, workflow_id):
 
 
 # Check status until a V3 or KYX transaction is finished.
-def check_status_v3_kyx(account_id, workflow_id):
+def check_status_v3_kyx(account_id: str, workflow_id: str) -> str:
     """It will keep checking the status until the transaction is finished.
     return the final status for the provided account and workflow ID."""
     while True:
@@ -167,7 +182,7 @@ def check_status_v3_kyx(account_id, workflow_id):
 
 
 # performNV
-def create_transaction(front_side="Oliver DL Back (1).jpeg", back_side="Oliver DL Front (1).png"):
+def create_transaction(front_side="Oliver DL Back (1).jpeg", back_side="Oliver DL Front (1).png") -> dict:
     """It will do a performNV (ID only) transaction for the provided ID images (jpeg or png).
     It will return the response for the completed request in JSON format."""
     # api-endpoint
