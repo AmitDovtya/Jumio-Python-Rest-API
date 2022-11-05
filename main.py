@@ -66,7 +66,7 @@ def create_kyx_account(key=10015) -> dict:
 
 
 # REST API request of standalone ID (10015)
-def kyx_api(kyx_trx_response: dict):
+def kyx_api(kyx_trx_response: dict) -> dict:
     """Receives a KYX account creation/ update response and completes the request through API platform
      and returns the response."""
     # extract the API URLs from the transaction.
@@ -154,7 +154,7 @@ def authentication_on_premise(account_id="2797b914-d9e9-4c1c-ae5d-d84f062d8920",
 
 
 # Get status of a V3 or KYX transaction.
-def get_status_v3_kyx(account_id, workflow_id) -> str:
+def get_status_v3_kyx(account_id: str, workflow_id: str) -> str:
     """It will return the status for the provided account and workflow ID."""
     retrieval_url = f"https://retrieval.amer-1.jumio.ai/api/v1/accounts/{account_id}" \
                     f"/workflow-executions/{workflow_id}/status"
@@ -217,7 +217,7 @@ def create_transaction(front_side="Oliver DL Back (1).jpeg", back_side="Oliver D
 
 
 # V2 Retrieval API: Gets the current status of a transaction.
-def get_status(scan_ref):
+def get_status(scan_ref: str) -> str:
     """It will return the status for the provided scan reference."""
     # api-endpoint
     url = f"https://netverify.com/api/netverify/v2/scans/{scan_ref}"
@@ -227,7 +227,7 @@ def get_status(scan_ref):
 
 
 # V2 API: Keeps checking until the transaction is processed.
-def check_status(scan_ref):
+def check_status(scan_ref: str) -> str:
     """It will keep checking the status until the transaction is finished.
         Returns the final status for the provided scan reference."""
     time.sleep(5)
