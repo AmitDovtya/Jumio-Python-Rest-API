@@ -15,6 +15,9 @@ Below are the fuctions related to the different API platforms:
 
 ### KYX and V3 API
 + get_access_token: Returns an OAuth 2.0 token to authenticate KYX or V3 API requests.
++ get_access_token_2(): Returns an OAuth 2.0 token to authenticate KYX or V3 API requests. Alternative for get_access_token() using:
+    from oauthlib.oauth2 import BackendApplicationClient
+    from requests_oauthlib import OAuth2Session
 + create_kyx_account: Creates a new KYX account ID for the provided Workflow key and returns the response in JSON format, which includes Account ID and Transaction reference.
 + kyx_api: Receives a KYX response in JSON format and completes the request through API platform and returns the response.
 + retrieve_facemap: Retrieves facemap from an existing account using account and workflow IDs. It will create a 'facemap.bin' file in the current folder with the facemap.
