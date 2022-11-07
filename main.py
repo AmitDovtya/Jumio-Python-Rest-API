@@ -37,8 +37,7 @@ def get_access_token_2() -> str:
     auth = HTTPBasicAuth(client_id, client_secret)
     client = BackendApplicationClient(client_id=client_id)
     oauth = OAuth2Session(client=client)
-    access_token = oauth.fetch_token(token_url='https://auth.amer-1.jumio.ai/oauth2/token', auth=auth)
-    return access_token['access_token']
+    return oauth.fetch_token(token_url='https://auth.amer-1.jumio.ai/oauth2/token', auth=auth)['access_token']
 
 
 # Creates a new account and a KYX transaction
