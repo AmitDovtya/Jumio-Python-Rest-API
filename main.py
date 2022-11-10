@@ -69,7 +69,6 @@ def kyx_api(kyx_trx_response: dict) -> dict:
     """Receives a KYX account creation/ update response and completes the request through API platform
      and returns the response."""
     # extract the API URLs from the transaction.
-    print(kyx_trx_response)
     front_url = kyx_trx_response['workflowExecution']['credentials'][0]['api']['parts']['front']
     back_url = kyx_trx_response['workflowExecution']['credentials'][0]['api']['parts']['back']
     finalize_url = kyx_trx_response['workflowExecution']['credentials'][0]['api']['workflowExecution']
@@ -256,12 +255,14 @@ def main():
     acc_id = response['account']['id']
     wf_id = response['workflowExecution']['id']
     kyx_tr_status = check_status_v3_kyx(acc_id, wf_id)
-    print(kyx_tr_status)
+    print(f"account ID- {acc_id}, workflow ID- {wf_id}: {kyx_tr_status}")
 
     # call to V3 API: Authentication with facemap on premise. Need to use the link to complete the transaction.
+    auth_status, web_link = authentication_on_premise(account_id='2797b914-d9e9-4c1c-ae5d-d84f062d8920',
+                                                      workflow_id='0909c43c-949c-4a5e-8b1c-090e673d400f')
     print(
-        authentication_on_premise(account_id="2797b914-d9e9-4c1c-ae5d-d84f062d8920",
-                                  workflow_id="0909c43c-949c-4a5e-8b1c-090e673d400f")
+        f"Authentication on premise initiate status and web link: "
+        f"{auth_status, web_link}"
     )
 
 
