@@ -8,6 +8,8 @@ This script is implenentated in Python. It includes several function to create a
 
 + Python 3.10
 + Requests library 2.28.1
++ oauthlib 3.2.2
++ requests-oauthlib 1.3.1
 
 ## Functions
 
