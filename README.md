@@ -49,4 +49,4 @@ client_secret = CLIENT_SECRET  # input your API client secret here as a string.
 ```
 ** Remove or comment out the API credentials for the unused platform.
 
-Chechout the main() function for the test requests or add your own code to create requests using the functions.
+Checkout the main() function for the test requests or add your own code to create requests using the functions.
